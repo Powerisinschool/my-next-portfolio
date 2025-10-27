@@ -14,6 +14,9 @@ const allisonFont = Allison({
 
 export const Hero = () => {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const isClickAnimating = useRef(false);
+
+  const charsRef = useRef<HTMLSpanElement[]>([]);
 
   useLayoutEffect(() => {
     const currentRef = headingRef.current;
@@ -24,10 +27,12 @@ export const Hero = () => {
     //   { y: 0, opacity: 1, duration: 2, ease: "power2.out" }
     // );
 
+    charsRef.current = gsap.utils.toArray(currentRef.querySelectorAll("[data-char]"));
+
     const tl = gsap.timeline();
 
     tl.fromTo(
-      currentRef.querySelectorAll("[data-char]"), // Target all the letters
+      charsRef.current, // Target all the letters
       { y: -50, opacity: 0 },
       {
         y: 0,
@@ -113,6 +118,71 @@ export const Hero = () => {
     });
   };
 
+  const handleClick: MouseEventHandler = () => {
+    if (isClickAnimating.current || !charsRef.current.length || !headingRef.current) return; // Prevent overlapping animations
+
+    isClickAnimating.current = true;
+
+    // const tl = gsap.timeline({
+    //   onComplete: () => {
+    //     isClickAnimating.current = false;
+    //   },
+    // });
+
+    // tl.to(charsRef.current, {
+    //   y: -100,
+    //   opacity: 0,
+    //   rotationX: 90,
+    //   duration: 0.6,
+    //   ease: "power2.in",
+    //   stagger: 0.03,
+    // });
+
+    // tl.fromTo(
+    //   charsRef.current,
+    //   {
+    //     y: 100,
+    //     opacity: 0,
+    //     rotationX: -90,
+    //   },
+    //   {
+    //     y: 0,
+    //     opacity: 1,
+    //     rotationX: 0,
+    //     duration: 0.6,
+    //     ease: "power2.out",
+    //     stagger: 0.03,
+    //   }
+    // );
+    const h1 = headingRef.current;
+
+    gsap.to(charsRef.current, {
+      x: gsap.utils.random(-200, 200, true),
+      y: gsap.utils.random(-200, 200, true),
+      rotation: gsap.utils.random(-360, 360, true),
+      scale: 0.5,
+      opacity: 0.3,
+      duration: 0.8,
+      ease: "power2.out",
+      stagger: 0.02,
+      yoyo: true,
+      repeat: 1,
+      onStart: () => {
+        gsap.set(h1, {
+          overflow: 'visible',
+          position: 'relative',
+          zIndex: 50,
+        });
+      },
+      onComplete: () => {
+        gsap.set(h1, {
+          clearProps: "overflow,position,zIndex"
+        });
+        isClickAnimating.current = false;
+      }
+    })
+  }
+
   return (
     <section className="text-center py-20 px-4 sm:px-6 justify-center items-center flex flex-col">
       <h1
@@ -126,9 +196,10 @@ export const Hero = () => {
         // )}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
         className={cn(
           allisonFont.className,
-          "text-8xl sm:text-9xl lg:text-[10rem] mb-4 leading-none text-transparent p-3",
+          "text-8xl sm:text-9xl lg:text-[10rem] mb-4 leading-none text-transparent p-3 select-none cursor-pointer",
           "bg-clip-text bg-size-[200%_auto]",
           "bg-[linear-gradient(110deg,var(--color-foreground),45%,var(--color-primary),55%,var(--color-foreground))]"
         )}
